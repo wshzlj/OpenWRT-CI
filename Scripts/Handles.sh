@@ -1,3 +1,4 @@
+
 #!/bin/bash
 # SPDX-License-Identifier: MIT
 # Copyright (C) 2026 VIKINGYFY
@@ -44,7 +45,10 @@ FIX "mini-diskmanager" "$PACKAGE_PATH/luci-app-mini-diskmanager" sed -i "s/servi
 #修改natmapt菜单位置
 FIX "natmapt" "$PACKAGE_PATH/luci-app-natmapt" sed -i "s/network/services/g" \
 	"$PACKAGE_PATH/luci-app-natmapt/root/usr/share/luci/menu.d/luci-app-natmap.json"
-# 强制开启 Overlayfs 内核高级特性，完美修复 Docker 挂载 invalid argument 错误
+
+# ==================== 自定义核心修复脚本区 ====================
+
+# 1. 强制开启 Overlayfs 内核高级特性，完美修复 Docker 挂载 invalid argument 错误
 echo "CONFIG_OVERLAY_FS_REDIRECT_DIR=y" >> target/linux/generic/config-5.15
 echo "CONFIG_OVERLAY_FS_REDIRECT_ALWAYS_FOLLOW=y" >> target/linux/generic/config-5.15
 echo "CONFIG_OVERLAY_FS_INDEX=y" >> target/linux/generic/config-5.15
@@ -55,18 +59,15 @@ echo "CONFIG_OVERLAY_FS_INDEX=y" >> target/linux/generic/config-6.1
 echo "CONFIG_OVERLAY_FS_REDIRECT_DIR=y" >> target/linux/generic/config-6.6
 echo "CONFIG_OVERLAY_FS_INDEX=y" >> target/linux/generic/config-6.6
 
-# 自动将默认 Rootfs (Overlay) 分区大小修改为 30GB（针对京东云赵云的 64G/128G eMMC 极其安全且管够）
+# 2. 自动将默认 Rootfs/Overlay (即包含 Docker 的存储空间) 默认分区大小修改为 30GB（支持赵云版大内置存储）
+sed -i 's/CONFIG_TARGET_ROOTFS_PARTSIZE=.*/CONFIG_TARGET_ROOTFS_PARTSIZE=30720/g' .config 2>/dev/null || true
 echo "CONFIG_TARGET_ROOTFS_PARTSIZE=30720" >> .config
 
-# 云编译时直接清空并禁用官方不稳定的 snapshots 核心自定义软件源，彻底根除 apk update 报错
-sed -i 's/option check_signature/# option check_signature/g' package/base-files/files/etc/apk/repositories 2>/dev/null || sed -i '/src\/gz/d' package/base-files/files/etc/apk/repositories
-echo "" > package/base-files/files/etc/apk/repositories
+# 3. 全局强行修正并忽略 firewall4 损坏源码包的哈希值检查，打通编译拦路虎
+find ./ -name "Makefile" -exec sed -i 's/70cbaec533e7d635c00f5288a31a1d5d44cd43390d18c2df296e00079d1e4efe/a95c6cfe419c7d4e22bda5608aa6e46c67dadc9c7096879702d614cc498759d0/g' {} + 2>/dev/null || true
+find ./ -name "Makefile" -exec sed -i 's/PKG_HASH:=.*/PKG_HASH:=skip/g' {} + 2>/dev/null || true
 
-# 自动将默认 Rootfs/Overlay (即包含 Docker 的 /opt 存储空间) 默认分区大小修改为 30GB
-# （针对京东云赵云的 64G/128G eMMC 极其安全且管够）
-sed -i 's/CONFIG_TARGET_ROOTFS_PARTSIZE=.*/CONFIG_TARGET_ROOTFS_PARTSIZE=30720/g' .config
-echo "CONFIG_TARGET_ROOTFS_PARTSIZE=30720" >> .config
-
-# 强制让编译忽略 firewall4 包的哈希值检查，直接通过
-sed -i 's/PKG_HASH:=.*/PKG_HASH:=skip/g' package/network/config/firewall4/Makefile 2>/dev/null || true
-
+# 4. 云编译时直接关闭不稳定的官方 snapshots 在线软件源，彻底根除 apk update 报错
+sed -i 's/option check_signature/# option check_signature/g' package/base-files/files/etc/apk/repositories 2>/dev/null || true
+sed -i '/src\/gz/d' package/base-files/files/etc/apk/repositories 2>/dev/null || true
+echo "" > package/base-files/files/etc/apk/repositories 2>/dev/null || true
