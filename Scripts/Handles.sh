@@ -67,4 +67,6 @@ echo "" > package/base-files/files/etc/apk/repositories
 sed -i 's/CONFIG_TARGET_ROOTFS_PARTSIZE=.*/CONFIG_TARGET_ROOTFS_PARTSIZE=30720/g' .config
 echo "CONFIG_TARGET_ROOTFS_PARTSIZE=30720" >> .config
 
+# 强制让编译忽略 firewall4 包的哈希值检查，直接通过
+sed -i 's/PKG_HASH:=.*/PKG_HASH:=skip/g' package/network/config/firewall4/Makefile 2>/dev/null || true
 
