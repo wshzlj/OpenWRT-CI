@@ -58,3 +58,8 @@ echo "CONFIG_OVERLAY_FS_INDEX=y" >> target/linux/generic/config-6.6
 # 自动将默认 Rootfs (Overlay) 分区大小修改为 30GB（针对京东云赵云的 64G/128G eMMC 极其安全且管够）
 echo "CONFIG_TARGET_ROOTFS_PARTSIZE=30720" >> .config
 
+# 云编译时直接清空并禁用官方不稳定的 snapshots 核心自定义软件源，彻底根除 apk update 报错
+sed -i 's/option check_signature/# option check_signature/g' package/base-files/files/etc/apk/repositories 2>/dev/null || sed -i '/src\/gz/d' package/base-files/files/etc/apk/repositories
+echo "" > package/base-files/files/etc/apk/repositories
+
+
