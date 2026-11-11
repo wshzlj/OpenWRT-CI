@@ -62,4 +62,9 @@ echo "CONFIG_TARGET_ROOTFS_PARTSIZE=30720" >> .config
 sed -i 's/option check_signature/# option check_signature/g' package/base-files/files/etc/apk/repositories 2>/dev/null || sed -i '/src\/gz/d' package/base-files/files/etc/apk/repositories
 echo "" > package/base-files/files/etc/apk/repositories
 
+# 自动将默认 Rootfs/Overlay (即包含 Docker 的 /opt 存储空间) 默认分区大小修改为 30GB
+# （针对京东云赵云的 64G/128G eMMC 极其安全且管够）
+sed -i 's/CONFIG_TARGET_ROOTFS_PARTSIZE=.*/CONFIG_TARGET_ROOTFS_PARTSIZE=30720/g' .config
+echo "CONFIG_TARGET_ROOTFS_PARTSIZE=30720" >> .config
+
 
