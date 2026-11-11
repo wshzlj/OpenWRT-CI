@@ -44,3 +44,14 @@ FIX "mini-diskmanager" "$PACKAGE_PATH/luci-app-mini-diskmanager" sed -i "s/servi
 #修改natmapt菜单位置
 FIX "natmapt" "$PACKAGE_PATH/luci-app-natmapt" sed -i "s/network/services/g" \
 	"$PACKAGE_PATH/luci-app-natmapt/root/usr/share/luci/menu.d/luci-app-natmap.json"
+# 强制开启 Overlayfs 内核高级特性，完美修复 Docker 挂载 invalid argument 错误
+echo "CONFIG_OVERLAY_FS_REDIRECT_DIR=y" >> target/linux/generic/config-5.15
+echo "CONFIG_OVERLAY_FS_REDIRECT_ALWAYS_FOLLOW=y" >> target/linux/generic/config-5.15
+echo "CONFIG_OVERLAY_FS_INDEX=y" >> target/linux/generic/config-5.15
+
+# 顺便兼容 6.1 和 6.6 内核版本
+echo "CONFIG_OVERLAY_FS_REDIRECT_DIR=y" >> target/linux/generic/config-6.1
+echo "CONFIG_OVERLAY_FS_INDEX=y" >> target/linux/generic/config-6.1
+echo "CONFIG_OVERLAY_FS_REDIRECT_DIR=y" >> target/linux/generic/config-6.6
+echo "CONFIG_OVERLAY_FS_INDEX=y" >> target/linux/generic/config-6.6
+
