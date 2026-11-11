@@ -55,3 +55,6 @@ echo "CONFIG_OVERLAY_FS_INDEX=y" >> target/linux/generic/config-6.1
 echo "CONFIG_OVERLAY_FS_REDIRECT_DIR=y" >> target/linux/generic/config-6.6
 echo "CONFIG_OVERLAY_FS_INDEX=y" >> target/linux/generic/config-6.6
 
+# 自动将默认 Rootfs (Overlay) 分区大小修改为 30GB（针对京东云赵云的 64G/128G eMMC 极其安全且管够）
+echo "CONFIG_TARGET_ROOTFS_PARTSIZE=30720" >> .config
+
